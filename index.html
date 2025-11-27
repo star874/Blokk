@@ -1,11 +1,1243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Blocks</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ Blokks - Workflow Builder</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #f9fafb;
+  color: #111827;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Dark Mode Toggle */
+#dark-mode:checked ~ .app {
+  background: #111827;
+  color: #f9fafb;
+}
+
+#dark-mode:checked ~ .app .ribbon {
+  background: linear-gradient(to bottom, #1f2937, #111827);
+  border-bottom-color: #374151;
+}
+
+#dark-mode:checked ~ .app .sidebar {
+  background: #1f2937;
+  border-right-color: #374151;
+}
+
+#dark-mode:checked ~ .app .block-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+#dark-mode:checked ~ .app .canvas {
+  background: #0f172a;
+}
+
+#dark-mode:checked ~ .app .chat-stage {
+  background: #1f2937;
+  border-left-color: #374151;
+}
+
+#dark-mode:checked ~ .app .chat-input input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+/* Hidden Controls */
+#dark-mode, #fullscreen, #show-mode, #sidebar-toggle {
+  display: none;
+}
+
+/* Top Ribbon */
+.ribbon {
+  height: 56px;
+  background: linear-gradient(to bottom, #ffffff, #f9fafb);
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 24px;
+  z-index: 100;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-right: auto;
+}
+
+.ribbon-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 0 12px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.ribbon-group:first-of-type {
+  border-left: none;
+}
+
+.ribbon-btn {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  color: #374151;
+}
+
+.ribbon-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.ribbon-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.ribbon-btn.primary:hover {
+  opacity: 0.9;
+}
+
+/* Main Layout */
+.app {
+  display: flex;
+  height: calc(100vh - 56px);
+  transition: all 0.3s;
+}
+
+/* Sidebar */
+#sidebar-toggle:checked ~ .app .sidebar {
+  transform: translateX(-100%);
+}
+
+.sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s;
+}
+
+.category-tabs {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 12px;
+  gap: 4px;
+}
+
+.category-tab {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.category-tab:hover {
+  color: #374151;
+  background: #f9fafb;
+}
+
+.category-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 600;
+}
+
+.blocks-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.block-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: move;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.block-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #667eea;
+}
+
+.block-card:active {
+  transform: scale(0.98);
+}
+
+.block-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.block-icon {
+  font-size: 20px;
+}
+
+.block-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.block-modes {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Canvas */
+.canvas {
+  flex: 1;
+  background: #f3f4f6;
+  background-image: 
+    linear-gradient(#e5e7eb 1px, transparent 1px),
+    linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Workflow Blocks on Canvas */
+.workflow-block {
+  position: absolute;
+  width: 240px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: all 0.2s;
+  cursor: move;
+}
+
+.workflow-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.workflow-block.control-flow { border-top: 3px solid #10b981; }
+.workflow-block.input { border-top: 3px solid #3b82f6; }
+.workflow-block.ai-processing { border-top: 3px solid #6366f1; }
+.workflow-block.logic { border-top: 3px solid #f59e0b; }
+.workflow-block.data { border-top: 3px solid #8b5cf6; }
+.workflow-block.output { border-top: 3px solid #14b8a6; }
+
+.workflow-block-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.workflow-block.control-flow .workflow-block-header { background: rgba(16, 185, 129, 0.15); }
+.workflow-block.input .workflow-block-header { background: rgba(59, 130, 246, 0.15); }
+.workflow-block.ai-processing .workflow-block-header { background: rgba(99, 102, 241, 0.15); }
+.workflow-block.logic .workflow-block-header { background: rgba(245, 158, 11, 0.15); }
+.workflow-block.data .workflow-block-header { background: rgba(139, 92, 246, 0.15); }
+.workflow-block.output .workflow-block-header { background: rgba(20, 184, 166, 0.15); }
+
+.workflow-block-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.workflow-block-body {
+  padding: 16px;
+}
+
+.mode-selector {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.block-output {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+  border-left: 3px solid #667eea;
+}
+
+/* Connection Handles */
+.handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #667eea;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: crosshair;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.handle:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+.handle.input {
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.handle.output {
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Sample Workflow Blocks Positioned */
+.block-1 { top: 50px; left: 100px; }
+.block-2 { top: 50px; left: 400px; }
+.block-3 { top: 200px; left: 250px; }
+.block-4 { top: 350px; left: 100px; }
+.block-5 { top: 350px; left: 400px; }
+
+/* Connection Lines */
+.connections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.connection-line {
+  stroke: #667eea;
+  stroke-width: 2;
+  fill: none;
+  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+  animation: dash 20s linear infinite;
+  stroke-dasharray: 5, 5;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* Chat Stage */
+.chat-stage {
+  width: 420px;
+  background: white;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-title {
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  gap: 12px;
+}
+
+.chat-empty-icon {
+  font-size: 48px;
+}
+
+.message {
+  display: flex;
+  gap: 12px;
+  animation: messageSlideIn 0.3s ease;
+  max-width: 85%;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.message.user .message-avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.message.ai .message-avatar {
+  background: #e5e7eb;
+}
+
+.message-content {
+  flex: 1;
+}
+
+.message-bubble {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message.user .message-bubble {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message.ai .message-bubble {
+  background: #f3f4f6;
+  color: #111827;
+  border-bottom-left-radius: 4px;
+}
+
+.message-meta {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.message.user .message-meta {
+  text-align: right;
+}
+
+.chat-input {
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.chat-input input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.chat-input button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chat-input button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.chat-input button:active {
+  transform: translateY(0);
+}
+
+/* Context Menu */
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 4px;
+  min-width: 200px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 1000;
+}
+
+.workflow-block:focus-within .context-menu {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.context-menu-item {
+  padding: 10px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.15s;
+}
+
+.context-menu-item:hover {
+  background: #f3f4f6;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+}
+
+/* Sticky Note */
+.sticky-note {
+  position: absolute;
+  width: 200px;
+  background: #fef3c7;
+  border: 2px dashed #fbbf24;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
+  cursor: move;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  top: 500px;
+  left: 700px;
+}
+
+.sticky-note textarea {
+  width: 100%;
+  height: 80px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+  resize: none;
+  color: #92400e;
+}
+
+/* Fullscreen Mode */
+#fullscreen:checked ~ .app .sidebar {
+  transform: translateX(-100%);
+}
+
+#fullscreen:checked ~ .app .canvas {
+  flex: 1;
+}
+
+/* Show Mode */
+#show-mode:checked ~ .show-mode-overlay {
+  display: flex;
+}
+
+.show-mode-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #111827;
+  z-index: 200;
+  flex-direction: column;
+}
+
+.show-mode-ribbon {
+  height: 56px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+}
+
+.show-mode-badge {
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.exit-show-mode {
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.show-mode-content {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+
+.hint-card {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  background: white;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 300px;
+  animation: float 3s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.hint-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #667eea;
+}
+
+.hint-text {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.zoom-btn {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.zoom-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Minimap */
+.minimap {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 180px;
+  height: 120px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.minimap-viewport {
+  width: 100%;
+  height: 100%;
+  background: #f9fafb;
+  background-image: 
+    linear-gradient(#e5e7eb 1px, transparent 1px),
+    linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+  background-size: 10px 10px;
+  position: relative;
+}
+
+.minimap-block {
+  position: absolute;
+  background: #667eea;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .chat-stage {
+    width: 340px;
+  }
+  
+  .sidebar {
+    width: 240px;
+  }
+}
+</style>
 </head>
 <body>
-    <style src="style.css"></style>
+<input type="checkbox" id="dark-mode">
+<input type="checkbox" id="fullscreen">
+<input type="checkbox" id="show-mode">
+<input type="checkbox" id="sidebar-toggle">
+
+<div class="app">
+  <!-- Top Ribbon -->
+  <div class="ribbon">
+    <div class="brand">⚡ Blokks</div>
+    
+    <div class="ribbon-group">
+      <button class="ribbon-btn">New</button>
+      <button class="ribbon-btn">Save</button>
+      <button class="ribbon-btn">Open</button>
+    </div>
+    
+    <div class="ribbon-group">
+      <button class="ribbon-btn primary">▶ Run</button>
+      <button class="ribbon-btn">Clear</button>
+    </div>
+    
+    <div class="ribbon-group">
+      <label for="fullscreen" class="ribbon-btn">⛶ Expand</label>
+      <label for="dark-mode" class="ribbon-btn">🌙 Theme</label>
+    </div>
+    
+    <div class="ribbon-group">
+      <button class="ribbon-btn">🔑 API Keys</button>
+    </div>
+    
+    <div class="ribbon-group">
+      <label for="show-mode" class="ribbon-btn">🎬 Show Mode</label>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <div class="category-tabs">
+        <div class="category-tab active">All</div>
+        <div class="category-tab">Control Flow</div>
+        <div class="category-tab">Input</div>
+        <div class="category-tab">AI</div>
+        <div class="category-tab">Logic</div>
+        <div class="category-tab">Data</div>
+        <div class="category-tab">Output</div>
+      </div>
+      
+      <div class="blocks-list">
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">🚀</span>
+            <span class="block-name">Start Block</span>
+          </div>
+          <div class="block-modes">Entry Point • Initialize</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">📥</span>
+            <span class="block-name">Input Hub</span>
+          </div>
+          <div class="block-modes">Text • Number • File • Webcam</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">🤖</span>
+            <span class="block-name">AI Processor</span>
+          </div>
+          <div class="block-modes">GPT • Image • Voice • Vision</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">🔀</span>
+            <span class="block-name">Logic Constructor</span>
+          </div>
+          <div class="block-modes">If-Else • Switch • Conditions</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">🔢</span>
+            <span class="block-name">Math Processor</span>
+          </div>
+          <div class="block-modes">Arithmetic • Statistics</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">📺</span>
+            <span class="block-name">Display Manager</span>
+          </div>
+          <div class="block-modes">Text • Image • Chart • Table</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">🔗</span>
+            <span class="block-name">API Connector</span>
+          </div>
+          <div class="block-modes">HTTP • Webhook • REST</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">📌</span>
+            <span class="block-name">Comment Sticky</span>
+          </div>
+          <div class="block-modes">Note • Annotation • Label</div>
+        </div>
+        
+        <div class="block-card">
+          <div class="block-card-header">
+            <span class="block-icon">🏁</span>
+            <span class="block-name">End Block</span>
+          </div>
+          <div class="block-modes">Termination • Complete</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="canvas">
+      <svg class="connections" width="100%" height="100%">
+        <path class="connection-line" d="M 220 90 Q 310 90 310 220" />
+        <path class="connection-line" d="M 520 90 Q 430 90 430 220" />
+        <path class="connection-line" d="M 310 260 L 310 350" />
+        <path class="connection-line" d="M 310 390 Q 220 470 220 500" />
+        <path class="connection-line" d="M 310 390 Q 400 470 520 500" />
+      </svg>
+
+      <!-- Sample Workflow Blocks -->
+      <div class="workflow-block block-1 control-flow" tabindex="0">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">🚀</span>
+          <span class="workflow-block-title">Start Block</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>Entry Point</option>
+            <option>Initialize</option>
+          </select>
+          <div class="block-output">Ready to begin workflow</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-2 input" tabindex="0">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">📥</span>
+          <span class="workflow-block-title">Input Hub</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>Text Input</option>
+            <option>Number</option>
+            <option>File Upload</option>
+            <option>Webcam</option>
+          </select>
+          <div class="block-output">Waiting for input...</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-3 ai-processing" tabindex="0">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">🤖</span>
+          <span class="workflow-block-title">AI Processor</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>GPT Processing</option>
+            <option>Image Generation</option>
+            <option>Voice Synthesis</option>
+            <option>Vision Analysis</option>
+          </select>
+          <div class="block-output">Processing with AI...</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-4 logic" tabindex="0">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">🔀</span>
+          <span class="workflow-block-title">Logic Constructor</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>If-Else</option>
+            <option>Switch</option>
+            <option>Conditions</option>
+          </select>
+          <div class="block-output">Evaluating conditions...</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-5 output" tabindex="0">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">📺</span>
+          <span class="workflow-block-title">Display Manager</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>Text Display</option>
+            <option>Image Display</option>
+            <option>Chart</option>
+            <option>Table</option>
+          </select>
+          <div class="block-output">Ready to display results</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <!-- Sticky Note -->
+      <div class="sticky-note">
+        <textarea placeholder="Add your notes here...">This is a sample workflow! Drag blocks around to explore.</textarea>
+      </div>
+
+      <!-- Minimap -->
+      <div class="minimap">
+        <div class="minimap-viewport">
+          <div class="minimap-block" style="top: 10%; left: 10%; width: 20px; height: 15px;"></div>
+          <div class="minimap-block" style="top: 10%; left: 45%; width: 20px; height: 15px;"></div>
+          <div class="minimap-block" style="top: 35%; left: 28%; width: 20px; height: 15px;"></div>
+          <div class="minimap-block" style="top: 60%; left: 10%; width: 20px; height: 15px;"></div>
+          <div class="minimap-block" style="top: 60%; left: 45%; width: 20px; height: 15px;"></div>
+        </div>
+      </div>
+
+      <!-- Zoom Controls -->
+      <div class="zoom-controls">
+        <button class="zoom-btn">+</button>
+        <button class="zoom-btn">−</button>
+        <button class="zoom-btn">⊡</button>
+      </div>
+    </div>
+
+    <!-- Chat Stage -->
+    <div class="chat-stage">
+      <div class="chat-header">
+        <span class="chat-title">💬 Chat-First Interface</span>
+      </div>
+      
+      <div class="chat-messages">
+        <div class="message ai">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              Welcome to Blokks! I'm your AI workflow assistant. Build your workflow by dragging blocks onto the canvas, connect them together, and click Run to execute. How can I help you today?
+            </div>
+            <div class="message-meta">AI Assistant • Just now</div>
+          </div>
+        </div>
+        
+        <div class="message user">
+          <div class="message-avatar">👤</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              Show me how to create a simple text processing workflow
+            </div>
+            <div class="message-meta">You • Just now</div>
+          </div>
+        </div>
+        
+        <div class="message ai">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              Great! I've created a sample workflow for you with 5 connected blocks:
+              <br><br>
+              1. Start Block - Initializes the workflow<br>
+              2. Input Hub - Accepts text input<br>
+              3. AI Processor - Processes with GPT<br>
+              4. Logic Constructor - Applies conditions<br>
+              5. Display Manager - Shows results<br><br>
+              Try dragging the blocks around and clicking Run to see them in action!
+            </div>
+            <div class="message-meta">AI Assistant • Just now</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-input">
+        <input type="text" placeholder="Type your message...">
+        <button>Send ↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Show Mode Overlay -->
+<div class="show-mode-overlay">
+  <div class="show-mode-ribbon">
+    <div class="show-mode-badge">🎬 DEMO MODE</div>
+    <label for="show-mode" class="exit-show-mode">Exit Demo</label>
+  </div>
+  
+  <div class="show-mode-content">
+    <div class="canvas" style="flex: 1;">
+      <svg class="connections" width="100%" height="100%">
+        <path class="connection-line" d="M 220 90 Q 310 90 310 220" />
+        <path class="connection-line" d="M 520 90 Q 430 90 430 220" />
+        <path class="connection-line" d="M 310 260 L 310 350" />
+        <path class="connection-line" d="M 310 390 Q 220 470 220 500" />
+        <path class="connection-line" d="M 310 390 Q 400 470 520 500" />
+      </svg>
+
+      <div class="workflow-block block-1 control-flow">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">🚀</span>
+          <span class="workflow-block-title">Start Block</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>Entry Point</option>
+          </select>
+          <div class="block-output">✓ Workflow initialized</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-2 input">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">📥</span>
+          <span class="workflow-block-title">Input Hub</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>Text Input</option>
+          </select>
+          <div class="block-output">✓ "Hello, AI!" received</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-3 ai-processing">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">🤖</span>
+          <span class="workflow-block-title">AI Processor</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>GPT Processing</option>
+          </select>
+          <div class="block-output">✓ Processed successfully</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-4 logic">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">🔀</span>
+          <span class="workflow-block-title">Logic Constructor</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>If-Else</option>
+          </select>
+          <div class="block-output">✓ Condition: TRUE</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="workflow-block block-5 output">
+        <div class="handle input"></div>
+        <div class="workflow-block-header">
+          <span class="block-icon">📺</span>
+          <span class="workflow-block-title">Display Manager</span>
+        </div>
+        <div class="workflow-block-body">
+          <select class="mode-selector">
+            <option>Text Display</option>
+          </select>
+          <div class="block-output">✓ Displayed in chat</div>
+        </div>
+        <div class="handle output"></div>
+      </div>
+
+      <div class="sticky-note">
+        <textarea readonly>🎉 Welcome to Blokks Demo!
+
+This is a pre-built workflow showing how blocks connect and execute.</textarea>
+      </div>
+    </div>
+    
+    <div class="chat-stage">
+      <div class="chat-header">
+        <span class="chat-title">💬 Demo Chat</span>
+      </div>
+      
+      <div class="chat-messages">
+        <div class="message user">
+          <div class="message-avatar">👤</div>
+          <div class="message-content">
+            <div class="message-bubble">Hello, AI!</div>
+            <div class="message-meta">Input Hub • Demo</div>
+          </div>
+        </div>
+        
+        <div class="message ai">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              Hello! I've processed your input through the workflow:
+              <br><br>
+              ✓ Start Block initialized<br>
+              ✓ Input received: "Hello, AI!"<br>
+              ✓ AI processing completed<br>
+              ✓ Logic evaluation: TRUE<br>
+              ✓ Result displayed successfully<br><br>
+              Your workflow executed perfectly! All 5 blocks worked together to process your message.
+            </div>
+            <div class="message-meta">Display Manager • Demo</div>
+          </div>
+        </div>
+        
+        <div class="message ai">
+          <div class="message-avatar">🎬</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              <strong>Demo Mode Active</strong><br><br>
+              You can drag blocks around to see the connections, but editing is disabled in demo mode. Click "Exit Demo" to return to the full editor where you can create your own workflows!
+            </div>
+            <div class="message-meta">System • Demo</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-input">
+        <input type="text" placeholder="Demo mode - read only" disabled style="opacity: 0.6;">
+        <button disabled style="opacity: 0.6;">Send ↑</button>
+      </div>
+    </div>
+    
+    <div class="hint-card">
+      <div class="hint-title">💡 Interactive Demo</div>
+      <div class="hint-text">
+        Blocks are connected and showing execution states. Try dragging them around to explore the workflow structure!
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
